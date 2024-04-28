@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>遠隔カメラ 受信</title>
+  <meta name="robots" content="noindex">
+  <script type="module" src="reciever.js"></script>
+</head>
+<body>
+  <video id="video" autoplay playsinline></video>
+  <form name="set-params">
+    <fieldset>
+      <legend>操作</legend>
+      <label for="candidate">候補</label><textarea id="candidate" cols="30" rows="10"></textarea>
+      <label for="description">概要</label><input type="text" id="description">
+      <button>設定</button>
+    </fieldset>
+  </form>
+  <output id="output"></output>
+  <button id="torch" class="material-icons md-36" hidden>flashlight_off</button>
+</body>
+</html>
