@@ -355,28 +355,6 @@ header {
     }
 }
 
-#video {
-    width: 100%;
-    height: 100%;
-    object-position: top;
-}
-
-#torch {
-    --side-ref: 80px;
-    position: absolute;
-    bottom: calc(25% - var(--side-ref) / 2);
-    left: 50%;
-    width: var(--side-ref);
-    height: var(--side-ref);
-    border-radius: 50%;
-    transform: translateX(-50%);
-    clip-path: circle();
-
-    &[hidden] {
-        display: none;
-    }
-}
-
 @media screen and (width < 768px) {
     .wrap {
         padding: 20px 10px;

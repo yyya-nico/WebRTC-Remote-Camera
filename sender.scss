@@ -1,1 +1,24 @@
 @charset "UTF-8";
+
+#video {
+    width: 50%;
+    height: 50%;
+    margin: 0 auto;
+    object-position: top;
+}
+
+#torch {
+    --side-ref: 80px;
+    position: absolute;
+    bottom: calc(25% - var(--side-ref) / 2);
+    left: 50%;
+    width: var(--side-ref);
+    height: var(--side-ref);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    clip-path: circle();
+
+    &[hidden] {
+        display: none;
+    }
+}

@@ -70,4 +70,24 @@ class RTCPeerConnectionHelper {
     }
 }
 
-export {RTCPeerConnectionHelper}
+const fullscreenSwitcher = button => {
+    const target = document.documentElement;
+    button.addEventListener('click', () => {
+		if (!document.fullscreenElement) {
+			target.requestFullscreen()
+                .catch((err) => {
+                    alert('ご利用のブラウザは全画面表示に対応していません' + err.name);
+                    button.disabled = true;
+                });
+		} else {
+			document.exitFullscreen();
+		}
+	});
+
+	const fullscreenChangeHandler = () => {
+        button.textContent = document.fullscreenElement ? 'fullscreen_exit' : 'fullscreen';
+	}
+	document.addEventListener('fullscreenchange', fullscreenChangeHandler);
+}
+
+export {RTCPeerConnectionHelper, fullscreenSwitcher}
