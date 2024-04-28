@@ -1,6 +1,8 @@
 'use strict';
 
 class RTCPeerConnectionHelper {
+    #loggingHandler = str => {};
+
     constructor() {
         this.pc = new RTCPeerConnection();
         const wsUrl = import.meta.env.VITE_WS_URL;
@@ -28,17 +30,46 @@ class RTCPeerConnectionHelper {
                     break;
                 case 'answer':
                     this.pc.setRemoteDescription(msg);
+                    this.#loggingHandler('接続済み');
                     break;
                 case 'candidate':
                     this.pc.addIceCandidate(msg.ice);
                     break;
                 case 'requestOffer':
+                    this.#loggingHandler('接続しなおしています...');
                     this.pc.close();
                     this.pc = new RTCPeerConnection();
                     this.start(this.track);
                     break;
             }
         });
+        this.pc.addEventListener('iceconnectionstatechange', () => {
+            switch (this.pc.iceConnectionState) {
+                case 'checking':
+                    this.#loggingHandler('確認中...');
+                    break;
+                case 'connected':
+                    this.#loggingHandler('接続済み');
+                    break;
+                case 'closed':
+                    this.#loggingHandler('切断しました');
+                    break;
+                case 'failed':
+                    this.#loggingHandler('切断されました');
+                    break;
+                case 'disconnected':
+                    this.#loggingHandler('一時的に切断しています');
+                    break;
+                default:
+                    this.#loggingHandler(this.pc.iceConnectionState);
+                    break;
+            }
+
+        });
+    }
+
+    set onEvent(handler) {
+        this.#loggingHandler = handler;
     }
 
     #sendWrap(msg) {
@@ -52,6 +83,7 @@ class RTCPeerConnectionHelper {
     }
 
     start(track) {
+        this.#loggingHandler('接続中...');
         if (track) {
             this.pc.addTrack(track);
             this.track = track;

@@ -8,6 +8,11 @@ import {RTCPeerConnectionHelper} from './utils';
 document.addEventListener('DOMContentLoaded', () => {
     const helper = new RTCPeerConnectionHelper();
     const video = document.getElementById('video');
+    const output = document.getElementById('output');
+    output.log = text => {
+        output.textContent = text;
+    };
+    helper.onEvent = output.log;
     const torchBtn = document.getElementById('torch');
     const torchBtnIconDefs = ['flashlight_off', 'flashlight_on'];
     let videoTrack = null, torch = false;
@@ -23,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
             facingMode: 'environment'
         }
     }).then(stream => {
+        output.log('カメラを起動しました');
         video.srcObject = stream;
         videoTrack = stream.getVideoTracks()[0];
         helper.start(videoTrack);
