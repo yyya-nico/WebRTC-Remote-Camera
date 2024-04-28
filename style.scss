@@ -310,11 +310,11 @@ header {
     }
 
     h2 {
-        margin-bottom: 60px;
+        margin-bottom: 50px;
+    }
 
-        + p {
-            margin-bottom: 30px;
-        }
+    p {
+        margin-bottom: 30px;
     }
 }
 
@@ -361,10 +361,10 @@ header {
 
         h2 {
             margin-bottom: 30px;
+        }
 
-            + p {
-                margin-bottom: 10px;
-            }
+        p {
+            margin-bottom: 10px;
         }
     }
 
