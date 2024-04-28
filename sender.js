@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.candidate) {
             clearTimeout(timer);
             candidates.push(JSON.stringify(e.candidate.toJSON()));
-            timer = setTimeout(timeoutHandler, 10);
+            timer = setTimeout(timeoutHandler, 200);
         }
     });
 
