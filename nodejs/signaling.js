@@ -22,6 +22,7 @@ wsServer.on('connection', ws => {
         client.send(message.toString());
       }
     });
+    console.log('message relayed:', message);
   });
 });
 
