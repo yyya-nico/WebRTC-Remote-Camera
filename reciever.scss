@@ -3,6 +3,18 @@
 body {
     text-align: center;
     text-shadow: 0 1px 2px #1f1f1f;
+    overflow: clip;
+
+    &.hide {
+        #output,
+        #fullscreen {
+            opacity: 0;
+        }
+
+        #output {
+            transform: translate(-50%, calc(100% + 30px));
+        }
+    }
 }
 
 #video {
@@ -11,8 +23,14 @@ body {
     object-position: top;
 }
 
-#output {
+#output,
+#fullscreen {
     position: absolute;
+    opacity: 1;
+    transition: opacity .2s ease-out, transform .2s ease-out;
+}
+
+#output {
     bottom: 30px;
     left: 50%;
     transform: translate(-50%, 50%);
@@ -20,7 +38,6 @@ body {
 
 #fullscreen {
     --side-ref: 60px;
-    position: absolute;
     right: 0;
     bottom: 0;
     width: var(--side-ref);

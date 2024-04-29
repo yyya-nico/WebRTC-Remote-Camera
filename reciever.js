@@ -3,7 +3,7 @@ import './reciever.scss'
 
 'use strict';
 
-import {RTCPeerConnectionHelper, fullscreenSwitcher} from './utils';
+import {RTCPeerConnectionHelper, fullscreenSwitcher, uiDispManage} from './utils';
 
 document.addEventListener('DOMContentLoaded', () => {
     const helper = new RTCPeerConnectionHelper();
@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stream.addTrack(videoTrack);
     });
 
+    uiDispManage();
     fullscreenSwitcher(fsBtn);
 
     helper.ready(videoTrack);

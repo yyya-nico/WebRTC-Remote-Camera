@@ -154,4 +154,19 @@ const fullscreenSwitcher = button => {
 	document.addEventListener('fullscreenchange', fullscreenChangeHandler);
 }
 
-export {RTCPeerConnectionHelper, fullscreenSwitcher}
+const uiDispManage = () => {
+    const target = document.body;
+    let fadeTimer = 0;
+    const fade = () => {
+        clearTimeout(fadeTimer);
+        target.classList.remove('hide');
+        fadeTimer = setTimeout(function() {
+            target.classList.add('hide');
+        },3000);
+    }
+    window.addEventListener('pointerdown',fade);
+    window.addEventListener('pointermove',fade);
+    fade();
+};
+
+export {RTCPeerConnectionHelper, fullscreenSwitcher, uiDispManage}
