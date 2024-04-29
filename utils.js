@@ -8,14 +8,7 @@ class RTCPeerConnectionHelper {
         const wsUrl = import.meta.env.VITE_WS_URL;
         this.ws = new WebSocket(wsUrl);
         this.track = null;
-        this.pc.addEventListener('icecandidate', e => {
-            if (e.candidate) {
-                this.#sendWrap(JSON.stringify({
-                    type: 'candidate',
-                    ice: e.candidate
-                }));
-            }
-        });
+        this.prepare = () => new Promise(resolve => this.resolve = resolve);
         this.ws.addEventListener('message', e => {
             const msg = JSON.parse(e.data);
             console.log(msg.type);
@@ -35,11 +28,12 @@ class RTCPeerConnectionHelper {
                 case 'candidate':
                     this.pc.addIceCandidate(msg.ice);
                     break;
-                case 'requestOffer':
-                    this.#loggingHandler('接続しなおしています...');
-                    this.pc.close();
-                    this.pc = new RTCPeerConnection();
-                    this.start(this.track);
+                case 'ready':
+                    if (!msg.loaded) {
+                        this.restart(this.track);
+                    }
+                    this.track.applyConstraints(msg.constraints);
+                    this.resolve();
                     break;
             }
         });
@@ -59,6 +53,9 @@ class RTCPeerConnectionHelper {
                     break;
                 case 'disconnected':
                     this.#loggingHandler('一時的に切断しています');
+                    if (!this.track) { // If reciever
+                        this.ready(true);
+                    }
                     break;
                 default:
                     this.#loggingHandler(this.pc.iceConnectionState);
@@ -82,12 +79,22 @@ class RTCPeerConnectionHelper {
         }
     }
 
-    start(track) {
-        this.#loggingHandler('接続中...');
+    async start(track) {
+        this.#loggingHandler('準備中...');
         if (track) {
             this.pc.addTrack(track);
             this.track = track;
+            await this.prepare();
         }
+        this.#loggingHandler('接続中...');
+        this.pc.addEventListener('icecandidate', e => {
+            if (e.candidate) {
+                this.#sendWrap(JSON.stringify({
+                    type: 'candidate',
+                    ice: e.candidate
+                }));
+            }
+        });
         this.pc.createOffer()
             .then(desc => {
                 this.pc.setLocalDescription(desc);
@@ -95,10 +102,23 @@ class RTCPeerConnectionHelper {
             });
     }
 
-    requestOffer() {
-        this.#sendWrap(JSON.stringify({
-            type: 'requestOffer'
-        }));
+    restart(track) {
+        this.#loggingHandler('接続しなおしています...');
+        this.pc.close();
+        this.pc = new RTCPeerConnection();
+        this.start(track);
+    }
+
+    ready(track) {
+        setTimeout(() => {
+            this.#sendWrap(JSON.stringify({
+                type: 'ready',
+                constraints: {
+                    aspectRatio: window.screen.height / window.screen.width // portrait
+                },
+                loaded: track !== null
+            }));
+        }, 1000);
     }
 }
 

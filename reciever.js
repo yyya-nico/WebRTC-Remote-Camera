@@ -9,6 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const helper = new RTCPeerConnectionHelper();
     const pc = helper.pc;
     const video = document.getElementById('video');
+    const output = document.getElementById('output');
+    output.log = text => {
+        output.textContent = text;
+    };
+    helper.onEvent = output.log;
     const fsBtn = document.getElementById('fullscreen');
     let videoTrack = null;
 
@@ -21,9 +26,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fullscreenSwitcher(fsBtn);
 
-    setTimeout(() => {
-        if (!videoTrack) {
-            helper.requestOffer();
-        }
-    }, 1000);
+    helper.ready(videoTrack);
 });
