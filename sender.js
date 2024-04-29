@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
             height: {
                 max: window.screen.height * window.devicePixelRatio
             },
+            aspectRatio: {
+                ideal: 16 / 9 // portrait
+            },
             facingMode: 'environment'
         }
     }).then(stream => {
