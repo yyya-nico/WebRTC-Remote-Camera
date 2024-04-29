@@ -53,14 +53,19 @@ class RTCPeerConnectionHelper {
                     break;
                 case 'disconnected':
                     this.#loggingHandler('一時的に切断しています');
-                    if (!this.track) { // If reciever
-                        this.ready(true);
-                    }
                     break;
                 default:
                     this.#loggingHandler(this.pc.iceConnectionState);
                     break;
             }
+            if (!this.track) { // If reciever
+                if (this.pc.iceConnectionState === 'disconnected') {
+                    this.ready(true, true);
+                } else {
+                    clearInterval(this.timer);
+                }
+            }
+
         });
         window.addEventListener('beforeunload', () => {
             this.pc.close();
@@ -111,8 +116,8 @@ class RTCPeerConnectionHelper {
         this.start(track);
     }
 
-    ready(track) {
-        setTimeout(() => {
+    ready(track, isInterval = false) {
+        const sendReady = () => {
             this.#sendWrap(JSON.stringify({
                 type: 'ready',
                 constraints: {
@@ -120,7 +125,12 @@ class RTCPeerConnectionHelper {
                 },
                 loaded: track !== null
             }));
-        }, 1000);
+        };
+        sendReady();
+        const ms = 15 * 1000;
+        if (isInterval) {
+            this.timer = setInterval(sendReady, ms);
+        }
     }
 }
 
