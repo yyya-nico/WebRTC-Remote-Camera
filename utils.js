@@ -163,10 +163,11 @@ const uiDispManage = () => {
         fadeTimer = setTimeout(function() {
             target.classList.add('hide');
         },3000);
-    }
+    };
     window.addEventListener('pointerdown',fade);
     window.addEventListener('pointermove',fade);
     fade();
+    return fade;
 };
 
 export {RTCPeerConnectionHelper, fullscreenSwitcher, uiDispManage}

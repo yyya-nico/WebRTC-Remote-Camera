@@ -9,10 +9,11 @@ body {
         #output,
         #fullscreen {
             opacity: 0;
+            transition: opacity .4s ease-out, transform .8s ease-out;
         }
 
         #output {
-            transform: translate(-50%, calc(100% + 30px));
+            transform: translate(-50%, -100%);
         }
     }
 }

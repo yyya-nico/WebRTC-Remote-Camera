@@ -9,9 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const helper = new RTCPeerConnectionHelper();
     const pc = helper.pc;
     const video = document.getElementById('video');
+    const fade = uiDispManage();
     const output = document.getElementById('output');
     output.log = text => {
         output.textContent = text;
+        fade();
     };
     helper.onEvent = output.log;
     const fsBtn = document.getElementById('fullscreen');
@@ -24,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
         stream.addTrack(videoTrack);
     });
 
-    uiDispManage();
     fullscreenSwitcher(fsBtn);
 
     helper.ready(videoTrack);
