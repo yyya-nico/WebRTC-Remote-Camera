@@ -16,7 +16,7 @@ console.log('WebSocket server started. port:' + port);
 
 wsServer.on('connection', (ws, req) => {
   const ip = req.socket.remoteAddress;
-  console.log('connect from' + ip);
+  console.log('connect from ' + ip);
   ws.on('message', message => {
     console.log('from ' + ip + ' sent type:', JSON.parse(message.toString()).type);
     wsServer.clients.forEach(client => {
