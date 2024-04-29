@@ -12,17 +12,18 @@ const server = https.createServer({
 
 const port = 3001;
 const wsServer = new WebSocketServer({server});
-console.log('websocket server start. port=' + port);
+console.log('WebSocket server started. port:' + port);
 
-wsServer.on('connection', ws => {
-  console.log('-- websocket connected --');
+wsServer.on('connection', (ws, req) => {
+  const ip = req.socket.remoteAddress;
+  console.log('connect from' + ip);
   ws.on('message', message => {
+    console.log('from ' + ip + ' sent type:', JSON.parse(message.toString()).type);
     wsServer.clients.forEach(client => {
       if (ws !== client) {
         client.send(message.toString());
       }
     });
-    console.log('message relayed:', message.toString());
   });
 });
 
