@@ -61,7 +61,9 @@ class RTCPeerConnectionHelper {
                     this.#loggingHandler(this.pc.iceConnectionState);
                     break;
             }
-
+        });
+        window.addEventListener('beforeunload', () => {
+            this.pc.close();
         });
     }
 
