@@ -8,7 +8,6 @@ class RTCPeerConnectionHelper {
         const wsUrl = import.meta.env.VITE_WS_URL;
         this.ws = new WebSocket(wsUrl);
         this.track = null;
-        this.prepare = () => new Promise(resolve => this.resolve = resolve);
         this.ws.addEventListener('message', e => {
             const msg = JSON.parse(e.data);
             console.log(msg.type);
@@ -33,7 +32,6 @@ class RTCPeerConnectionHelper {
                         this.restart(this.track);
                     }
                     this.track.applyConstraints(msg.constraints);
-                    this.resolve();
                     break;
             }
         });
@@ -91,7 +89,6 @@ class RTCPeerConnectionHelper {
         if (track) {
             this.pc.addTrack(track);
             this.track = track;
-            await this.prepare();
         }
         this.#loggingHandler('接続中...');
         this.pc.addEventListener('icecandidate', e => {
@@ -116,21 +113,14 @@ class RTCPeerConnectionHelper {
         this.start(track);
     }
 
-    ready(track, isInterval = false) {
-        const sendReady = () => {
-            this.#sendWrap(JSON.stringify({
-                type: 'ready',
-                constraints: {
-                    aspectRatio: window.screen.height / window.screen.width // portrait
-                },
-                loaded: track !== null
-            }));
-        };
-        sendReady();
-        const ms = 15 * 1000;
-        if (isInterval) {
-            this.timer = setInterval(sendReady, ms);
-        }
+    ready(track) {
+        this.#sendWrap(JSON.stringify({
+            type: 'ready',
+            constraints: {
+                aspectRatio: window.screen.height / window.screen.width
+            },
+            loaded: track !== null
+        }));
     }
 }
 
