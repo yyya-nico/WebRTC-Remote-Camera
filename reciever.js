@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resolution = document.getElementById('resolution');
     resolution.log = text => {
         resolution.textContent = text;
+        fade();
     };
     helper.onEvent = output.log;
     const fsBtn = document.getElementById('fullscreen');
