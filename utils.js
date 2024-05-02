@@ -30,15 +30,21 @@ class RTCPeerConnectionHelper {
                 case 'ready':
                     this.restart(this.track);
                     break;
-                case 'requestAspectRatio':
+                case 'requestConstraints':
                     this.#sendWrap(JSON.stringify({
-                        type: 'returnAspectRatio',
+                        type: 'returnConstraints',
                         constraints: {
+                            width: {
+                                max: window.screen.width * window.devicePixelRatio
+                            },
+                            height: {
+                                max: window.screen.height * window.devicePixelRatio
+                            },
                             aspectRatio: window.screen.height / window.screen.width
                         }
                     }));
                     break;
-                case 'returnAspectRatio':
+                case 'returnConstraints':
                     this.track.applyConstraints(msg.constraints);
                     break;
             }
@@ -91,7 +97,7 @@ class RTCPeerConnectionHelper {
             this.pc.addTrack(track);
             this.track = track;
             this.#sendWrap(JSON.stringify({
-                type: 'requestAspectRatio'
+                type: 'requestConstraints'
             }));
         }
         this.#loggingHandler('接続中...');
