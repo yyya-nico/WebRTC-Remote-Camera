@@ -28,9 +28,17 @@ class RTCPeerConnectionHelper {
                     this.pc.addIceCandidate(msg.ice);
                     break;
                 case 'ready':
-                    if (!msg.loaded) {
-                        this.restart(this.track);
-                    }
+                    this.restart(this.track);
+                    break;
+                case 'requestAspectRatio':
+                    this.#sendWrap(JSON.stringify({
+                        type: 'returnAspectRatio',
+                        constraints: {
+                            aspectRatio: window.screen.height / window.screen.width
+                        }
+                    }));
+                    break;
+                case 'returnAspectRatio':
                     this.track.applyConstraints(msg.constraints);
                     break;
             }
@@ -55,13 +63,6 @@ class RTCPeerConnectionHelper {
                 default:
                     this.#loggingHandler(this.pc.iceConnectionState);
                     break;
-            }
-            if (!this.track) { // If reciever
-                if (this.pc.iceConnectionState === 'disconnected') {
-                    this.ready(true, true);
-                } else {
-                    clearInterval(this.timer);
-                }
             }
 
         });
@@ -89,6 +90,9 @@ class RTCPeerConnectionHelper {
         if (track) {
             this.pc.addTrack(track);
             this.track = track;
+            this.#sendWrap(JSON.stringify({
+                type: 'requestAspectRatio'
+            }));
         }
         this.#loggingHandler('接続中...');
         this.pc.addEventListener('icecandidate', e => {
@@ -116,10 +120,6 @@ class RTCPeerConnectionHelper {
     ready(track) {
         this.#sendWrap(JSON.stringify({
             type: 'ready',
-            constraints: {
-                aspectRatio: window.screen.height / window.screen.width
-            },
-            loaded: track !== null
         }));
     }
 }
