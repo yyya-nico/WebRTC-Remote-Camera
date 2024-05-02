@@ -12,10 +12,18 @@ document.addEventListener('DOMContentLoaded', () => {
     output.log = text => {
         output.textContent = text;
     };
+    const resolution = document.getElementById('resolution');
+    resolution.log = text => {
+        resolution.textContent = text;
+    };
     helper.onEvent = output.log;
     const torchBtn = document.getElementById('torch');
     const torchBtnIconDefs = ['flashlight_off', 'flashlight_on'];
     let videoTrack = null, torch = false;
+
+    video.addEventListener('resize', () => {
+        resolution.log(`${video.videoWidth} x ${video.videoHeight}`);
+    });
 
     const initialMediaStreamConstraints = {
         video: {

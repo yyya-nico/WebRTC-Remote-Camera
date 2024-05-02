@@ -15,9 +15,17 @@ document.addEventListener('DOMContentLoaded', () => {
         output.textContent = text;
         fade();
     };
+    const resolution = document.getElementById('resolution');
+    resolution.log = text => {
+        resolution.textContent = text;
+    };
     helper.onEvent = output.log;
     const fsBtn = document.getElementById('fullscreen');
     let videoTrack = null;
+
+    video.addEventListener('resize', () => {
+        resolution.log(`${video.videoWidth} x ${video.videoHeight}`);
+    });
 
     pc.addEventListener('track', e => {
         videoTrack = e.track;

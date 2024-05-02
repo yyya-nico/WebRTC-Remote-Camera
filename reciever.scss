@@ -6,13 +6,13 @@ body {
     overflow: clip;
 
     &.hide {
-        #output,
+        .outputs,
         #fullscreen {
             opacity: 0;
             transition: opacity .4s ease-out, transform .8s ease-out;
         }
 
-        #output {
+        .outputs {
             transform: translate(-50%, -100%);
         }
     }
@@ -24,14 +24,16 @@ body {
     object-position: top;
 }
 
-#output,
+.outputs,
 #fullscreen {
     position: absolute;
     opacity: 1;
     transition: opacity .2s ease-out, transform .2s ease-out;
 }
 
-#output {
+.outputs {
+    display: flex;
+    flex-direction: column;
     bottom: 30px;
     left: 50%;
     transform: translate(-50%, 50%);
