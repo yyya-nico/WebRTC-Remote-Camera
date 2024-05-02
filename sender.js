@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         video.srcObject = stream;
         videoTrack = stream.getVideoTracks()[0];
         const supported = videoTrack.getCapabilities();
-        torchBtn.hidden = !('torch' in supported);
+        torchBtn.hidden = !supported.torch;
         helper.start(videoTrack);
     });
 
