@@ -9,9 +9,10 @@ export default {
         injectRegister: 'auto',
         manifest: {
           'name': '遠隔カメラ',
+          'short_name': '遠隔カメラ',
           'theme_color': '#101010',
           'background_color': '#1f1f1f',
-          'display': 'fullScreen',
+          'display': 'fullscreen',
           'scope': '/remote_camera/',
           'start_url': '/remote_camera/',
           'lang': 'ja-JP',
