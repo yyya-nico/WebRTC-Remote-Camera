@@ -53,4 +53,10 @@ body {
     &:disabled {
         background-color: transparent;
     }
+
+    @media (display-mode: fullscreen) {
+        & {
+            display: none;
+        }
+    }
 }
