@@ -2,7 +2,7 @@ import { resolve } from 'path'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default {
-    base: '/remote_camera/',
+    base: '/remote-camera/',
     plugins: [
       VitePWA({
         registerType: 'autoUpdate',
