@@ -1,1 +1,1 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/remote_camera/sw.js', { scope: '/remote_camera/' })})}
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/remote-camera/sw.js', { scope: '/remote-camera/' })})}
