@@ -13,8 +13,8 @@ export default {
           'theme_color': '#101010',
           'background_color': '#1f1f1f',
           'display': 'fullscreen',
-          'scope': '/remote_camera/',
-          'start_url': '/remote_camera/',
+          'scope': '/remote-camera/',
+          'start_url': '/remote-camera',
           'lang': 'ja-JP',
           'icons': [
             {
