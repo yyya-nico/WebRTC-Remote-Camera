@@ -6,8 +6,15 @@ class RTCPeerConnectionHelper {
     constructor() {
         this.pc = new RTCPeerConnection();
         const wsUrl = import.meta.env.VITE_WS_URL;
+        this.hubName = import.meta.env.VITE_WS_HUB_NAME;
+        const uuid = self.crypto.randomUUID();
         this.ws = new WebSocket(wsUrl);
         this.track = null;
+        this.joinHub = false;
+        this.promise = new Promise((resolve, reject) => {
+            this.resolve = resolve;
+            this.reject = reject;
+        });
         this.ws.addEventListener('message', e => {
             const msg = JSON.parse(e.data);
             console.log(msg.type);
@@ -17,7 +24,7 @@ class RTCPeerConnectionHelper {
                     this.pc.createAnswer()
                         .then(desc => {
                             this.pc.setLocalDescription(desc);
-                            this.#sendWrap(JSON.stringify(desc));
+                            this.#sendWrap(desc);
                         });
                     break;
                 case 'answer':
@@ -31,7 +38,7 @@ class RTCPeerConnectionHelper {
                     this.restart(this.track);
                     break;
                 case 'requestConstraints':
-                    this.#sendWrap(JSON.stringify({
+                    this.#sendWrap({
                         type: 'returnConstraints',
                         constraints: {
                             width: {
@@ -42,12 +49,26 @@ class RTCPeerConnectionHelper {
                             },
                             aspectRatio: window.screen.height / window.screen.width
                         }
-                    }));
+                    });
                     break;
                 case 'returnConstraints':
                     this.track.applyConstraints(msg.constraints);
                     break;
+                default:
+                    console.log(msg);
+                    if (msg.joinHub) {
+                        this.joinHub = msg.joinHub === 'OK';
+                        this.joinHub ? this.resolve() : this.reject();
+                    }
+                    break;
             }
+        });
+        this.#sendWrap({
+            auth: uuid,
+            passwd:'none'
+        });
+        this.#sendWrap({
+            joinHub: this.hubName
         });
         this.pc.addEventListener('iceconnectionstatechange', () => {
             switch (this.pc.iceConnectionState) {
@@ -81,12 +102,25 @@ class RTCPeerConnectionHelper {
         this.#loggingHandler = handler;
     }
 
-    #sendWrap(msg) {
+    async #sendWrap(msg) {
+        if (!this.joinHub && !msg.auth && !msg.joinHub) {
+            await this.promise;
+        }
         if (this.ws.readyState) { // Connection Opened
-            this.ws.send(msg);
+            this.ws.send(JSON.stringify({
+                ...(this.joinHub && {
+                    toH: this.hubName
+                }),
+                ...msg
+            }));
         } else {
             this.ws.addEventListener('open', () => {
-                this.ws.send(msg);
+                this.ws.send(JSON.stringify({
+                    ...(this.joinHub && {
+                        toH: this.hubName
+                    }),
+                    ...msg
+                }));
             }, {once: true});
         }
     }
@@ -96,23 +130,23 @@ class RTCPeerConnectionHelper {
         if (track) {
             this.pc.addTrack(track);
             this.track = track;
-            this.#sendWrap(JSON.stringify({
+            this.#sendWrap({
                 type: 'requestConstraints'
-            }));
+            });
         }
         this.#loggingHandler('接続中...');
         this.pc.addEventListener('icecandidate', e => {
             if (e.candidate) {
-                this.#sendWrap(JSON.stringify({
+                this.#sendWrap({
                     type: 'candidate',
                     ice: e.candidate
-                }));
+                });
             }
         });
         this.pc.createOffer()
             .then(desc => {
                 this.pc.setLocalDescription(desc);
-                this.#sendWrap(JSON.stringify(desc));
+                this.#sendWrap(desc);
             });
     }
 
@@ -124,9 +158,9 @@ class RTCPeerConnectionHelper {
     }
 
     ready(track) {
-        this.#sendWrap(JSON.stringify({
+        this.#sendWrap({
             type: 'ready',
-        }));
+        });
     }
 }
 
