@@ -14,7 +14,7 @@ export default {
           'background_color': '#1f1f1f',
           'display': 'fullscreen',
           'scope': '/remote-camera/',
-          'start_url': '/remote-camera',
+          'start_url': '/remote-camera/',
           'lang': 'ja-JP',
           'icons': [
             {
