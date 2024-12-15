@@ -16,6 +16,33 @@ body {
             transform: translate(-50%, -100%);
         }
     }
+
+    > * {
+        position: absolute;
+        inset: 0;
+    }
+}
+
+.connect-qr-image,
+.view {
+    display: contents;
+    transition: opacity .2s ease-out, visibility .2s ease-out;
+    &[hidden] {
+        display: block;
+        visibility: hidden;
+        opacity: 0;
+    }
+}
+
+.connect-qr-image {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    p {
+        margin-top: 30px;
+    }
 }
 
 #video {

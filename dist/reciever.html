@@ -13,18 +13,24 @@
   <meta name="msapplication-TileColor" content="#2b5797">
   <meta name="msapplication-config" content="/remote-camera/icons/browserconfig.xml">
   <meta name="theme-color" content="#101010">
-  <script type="module" crossorigin src="/remote-camera/assets/reciever-Dm97FUas.js"></script>
-  <link rel="modulepreload" crossorigin href="/remote-camera/assets/style-DGkg00M4.js">
-  <link rel="modulepreload" crossorigin href="/remote-camera/assets/utils-DuTNqjJL.js">
-  <link rel="stylesheet" crossorigin href="/remote-camera/assets/style-BVLD3-vF.css">
-  <link rel="stylesheet" crossorigin href="/remote-camera/assets/reciever-DVRJ8L4Q.css">
+  <script type="module" crossorigin src="/remote-camera/assets/reciever-DbMsy-9b.js"></script>
+  <link rel="modulepreload" crossorigin href="/remote-camera/assets/style-Dtd-YhAW.js">
+  <link rel="modulepreload" crossorigin href="/remote-camera/assets/utils-5xWOiXX3.js">
+  <link rel="stylesheet" crossorigin href="/remote-camera/assets/style-DEYqBTpd.css">
+  <link rel="stylesheet" crossorigin href="/remote-camera/assets/reciever-CxDzrqlt.css">
 <link rel="manifest" href="/remote-camera/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/remote-camera/registerSW.js"></script></head>
 <body>
-  <video id="video" autoplay muted playsinline></video>
-  <div class="outputs">
-    <output id="output">準備中...</output>
-    <output id="resolution"></output>
+  <div class="connect-qr-image">
+    <canvas id="qr-code"></canvas>
+    <p>送信側でQRコードを読み取ってください。</p>
   </div>
-  <button id="fullscreen" class="material-icons md-36">fullscreen</button>
+  <div class="view" hidden>
+    <video id="video" autoplay muted playsinline></video>
+    <div class="outputs">
+      <output id="output">準備中...</output>
+      <output id="resolution"></output>
+    </div>
+    <button id="fullscreen" class="material-icons md-36">fullscreen</button>
+  </div>
 </body>
 </html>

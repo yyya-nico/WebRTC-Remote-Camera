@@ -16,11 +16,17 @@
   <script type="module" src="reciever.js"></script>
 </head>
 <body>
-  <video id="video" autoplay muted playsinline></video>
-  <div class="outputs">
-    <output id="output">準備中...</output>
-    <output id="resolution"></output>
+  <div class="connect-qr-image">
+    <canvas id="qr-code"></canvas>
+    <p>送信側でQRコードを読み取ってください。</p>
   </div>
-  <button id="fullscreen" class="material-icons md-36">fullscreen</button>
+  <div class="view" hidden>
+    <video id="video" autoplay muted playsinline></video>
+    <div class="outputs">
+      <output id="output">準備中...</output>
+      <output id="resolution"></output>
+    </div>
+    <button id="fullscreen" class="material-icons md-36">fullscreen</button>
+  </div>
 </body>
 </html>

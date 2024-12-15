@@ -10,6 +10,10 @@ class RTCPeerConnectionHelper {
         const uuid = self.crypto.randomUUID();
         this.ws = new WebSocket(wsUrl);
         this.track = null;
+        this.sid = null;
+        this.sidHandler = () => {};
+        this.pairSid = null;
+        this.disconnectHandler = () => {};
         this.joinHub = false;
         this.promise = new Promise((resolve, reject) => {
             this.resolve = resolve;
@@ -21,10 +25,13 @@ class RTCPeerConnectionHelper {
             switch (msg.type) {
                 case 'offer':
                     this.pc.setRemoteDescription(msg);
+                    this.pairSid = msg.sID;
                     this.pc.createAnswer()
                         .then(desc => {
                             this.pc.setLocalDescription(desc);
-                            this.#sendWrap(desc);
+                            this.#sendWrap({
+                                ...desc
+                            });
                         });
                     break;
                 case 'answer':
@@ -33,9 +40,6 @@ class RTCPeerConnectionHelper {
                     break;
                 case 'candidate':
                     this.pc.addIceCandidate(msg.ice);
-                    break;
-                case 'ready':
-                    this.restart(this.track);
                     break;
                 case 'requestConstraints':
                     this.#sendWrap({
@@ -56,9 +60,18 @@ class RTCPeerConnectionHelper {
                     break;
                 default:
                     console.log(msg);
-                    if (msg.joinHub) {
+                    if (msg.auth && msg.auth === 'OK') {
+                        this.sid = msg.SID;
+                        this.sidHandler(this.sid);
+                    } else if (msg.joinHub) {
                         this.joinHub = msg.joinHub === 'OK';
                         this.joinHub ? this.resolve() : this.reject();
+                    } else if (msg.leftHub && this.pairSid === msg.sID) {
+                        this.pc.close();
+                        this.pairSid = null;
+                        this.pc = new RTCPeerConnection();
+                        this.disconnectHandler();
+                        this.#loggingHandler('切断しました');
                     }
                     break;
             }
@@ -91,10 +104,6 @@ class RTCPeerConnectionHelper {
                     this.#loggingHandler(this.pc.iceConnectionState);
                     break;
             }
-
-        });
-        window.addEventListener('beforeunload', () => {
-            this.pc.close();
         });
     }
 
@@ -111,6 +120,9 @@ class RTCPeerConnectionHelper {
                 ...(this.joinHub && {
                     toH: this.hubName
                 }),
+                ...(this.pairSid && {
+                    toS: this.pairSid
+                }),
                 ...msg
             }));
         } else {
@@ -119,14 +131,18 @@ class RTCPeerConnectionHelper {
                     ...(this.joinHub && {
                         toH: this.hubName
                     }),
+                    ...(this.pairSid && {
+                        toS: this.pairSid
+                    }),
                     ...msg
                 }));
             }, {once: true});
         }
     }
 
-    async start(track) {
+    async start(track, pairSid) {
         this.#loggingHandler('準備中...');
+        this.pairSid = pairSid;
         if (track) {
             this.pc.addTrack(track);
             this.track = track;
@@ -146,21 +162,10 @@ class RTCPeerConnectionHelper {
         this.pc.createOffer()
             .then(desc => {
                 this.pc.setLocalDescription(desc);
-                this.#sendWrap(desc);
+                this.#sendWrap({
+                    ...desc
+                });
             });
-    }
-
-    restart(track) {
-        this.#loggingHandler('接続しなおしています...');
-        this.pc.close();
-        this.pc = new RTCPeerConnection();
-        this.start(track);
-    }
-
-    ready(track) {
-        this.#sendWrap({
-            type: 'ready',
-        });
     }
 }
 

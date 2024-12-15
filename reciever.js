@@ -1,41 +1,59 @@
 import './style.scss'
 import './reciever.scss'
 
-'use strict';
-
+import QRCode from 'qrcode';
 import {RTCPeerConnectionHelper, fullscreenSwitcher, uiDispManage} from './utils';
 
-document.addEventListener('DOMContentLoaded', () => {
-    const helper = new RTCPeerConnectionHelper();
-    const pc = helper.pc;
-    const video = document.getElementById('video');
-    const fade = uiDispManage();
-    const output = document.getElementById('output');
-    output.log = text => {
-        output.textContent = text;
-        fade();
-    };
-    const resolution = document.getElementById('resolution');
-    resolution.log = text => {
-        resolution.textContent = text;
-        fade();
-    };
-    helper.onEvent = output.log;
-    const fsBtn = document.getElementById('fullscreen');
-    let videoTrack = null;
-
-    video.addEventListener('resize', () => {
-        resolution.log(`${video.videoWidth} x ${video.videoHeight}`);
+const helper = new RTCPeerConnectionHelper();
+const connectQrImage = document.querySelector('.connect-qr-image');
+const view = document.querySelector('.view');
+const video = document.getElementById('video');
+const fade = uiDispManage();
+const output = document.getElementById('output');
+output.log = text => {
+    output.textContent = text;
+    fade();
+};
+helper.onEvent = output.log;
+const resolution = document.getElementById('resolution');
+resolution.log = text => {
+    resolution.textContent = text;
+    fade();
+};
+const qrCode = document.getElementById('qr-code');
+helper.sidHandler = sid => {
+    QRCode.toCanvas(qrCode, `Connect:${sid}`, {
+        margin: 2,
+        scale: 8
+    }, error => {
+        if (error) {
+            alert('QRコードを作成できませんでした。お使いの環境では利用できません。');    
+        }
     });
+};
+const fsBtn = document.getElementById('fullscreen');
 
-    pc.addEventListener('track', e => {
-        videoTrack = e.track;
+video.addEventListener('resize', () => {
+    resolution.log(`${video.videoWidth} x ${video.videoHeight}`);
+});
+
+const listenTrackEvent = () => {
+    helper.pc.addEventListener('track', e => {
+        const videoTrack = e.track;
         const stream = new MediaStream();
         video.srcObject = e.streams && e.streams[0] || stream;
         stream.addTrack(videoTrack);
+        connectQrImage.hidden = true;
+        view.hidden = false;
     });
+};
+listenTrackEvent();
 
-    fullscreenSwitcher(fsBtn);
+fullscreenSwitcher(fsBtn);
 
-    helper.ready(videoTrack);
-});
+helper.disconnectHandler = () => {
+    connectQrImage.hidden = false;
+    view.hidden = true;
+    video.srcObject = null;
+    listenTrackEvent();
+}
