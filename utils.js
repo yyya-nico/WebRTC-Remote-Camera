@@ -1,5 +1,11 @@
 'use strict';
 
+const getTimestamp = () => {
+    const now = Date.now();
+    const lastFiveDigits = now % 100000; // 下5桁を取得
+    return lastFiveDigits.toString().padStart(5, '0'); // 0で埋める
+};
+
 class RTCPeerConnectionHelper {
     #loggingHandler = str => {};
 
@@ -25,7 +31,6 @@ class RTCPeerConnectionHelper {
             switch (msg.type) {
                 case 'offer':
                     this.pc.setRemoteDescription(msg);
-                    this.pairSid = msg.sID;
                     this.pc.createAnswer()
                         .then(desc => {
                             this.pc.setLocalDescription(desc);
@@ -42,6 +47,7 @@ class RTCPeerConnectionHelper {
                     this.pc.addIceCandidate(msg.ice);
                     break;
                 case 'requestConstraints':
+                    this.pairSid = msg.sID;
                     this.#sendWrap({
                         type: 'returnConstraints',
                         constraints: {
