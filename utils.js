@@ -88,6 +88,7 @@ class RTCPeerConnectionHelper {
                         this.pc = new RTCPeerConnection();
                         this.disconnectHandler();
                         this.#loggingHandler('切断しました');
+                        this.listenIceconnectionstatechange();
                     }
                     break;
             }
@@ -99,28 +100,7 @@ class RTCPeerConnectionHelper {
         this.#sendWrap({
             joinHub: this.hubName
         });
-        this.pc.addEventListener('iceconnectionstatechange', () => {
-            switch (this.pc.iceConnectionState) {
-                case 'checking':
-                    this.#loggingHandler('確認中...');
-                    break;
-                case 'connected':
-                    this.#loggingHandler('接続済み');
-                    break;
-                case 'closed':
-                    this.#loggingHandler('切断しました');
-                    break;
-                case 'failed':
-                    this.#loggingHandler('切断されました');
-                    break;
-                case 'disconnected':
-                    this.#loggingHandler('一時的に切断しています');
-                    break;
-                default:
-                    this.#loggingHandler(this.pc.iceConnectionState);
-                    break;
-            }
-        });
+        this.listenIceconnectionstatechange();
     }
 
     set onEvent(handler) {
@@ -149,6 +129,31 @@ class RTCPeerConnectionHelper {
         } else {
             this.ws.addEventListener('open', send, {once: true});
         }
+    }
+
+    listenIceconnectionstatechange() {
+        this.pc.addEventListener('iceconnectionstatechange', () => {
+            switch (this.pc.iceConnectionState) {
+                case 'checking':
+                    this.#loggingHandler('確認中...');
+                    break;
+                case 'connected':
+                    this.#loggingHandler('接続済み');
+                    break;
+                case 'closed':
+                    this.#loggingHandler('切断しました');
+                    break;
+                case 'failed':
+                    this.#loggingHandler('切断されました');
+                    break;
+                case 'disconnected':
+                    this.#loggingHandler('一時的に切断しています');
+                    break;
+                default:
+                    this.#loggingHandler(this.pc.iceConnectionState);
+                    break;
+            }
+        });
     }
 
     returnConstraints() {
