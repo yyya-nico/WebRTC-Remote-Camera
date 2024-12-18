@@ -65,12 +65,12 @@ class RTCPeerConnectionHelper {
                         type: 'returnConstraints',
                         constraints: {
                             width: {
-                                max: window.outerWidth * window.devicePixelRatio
+                                max: window.innerWidth * window.devicePixelRatio
                             },
                             height: {
-                                max: window.outerHeight * window.devicePixelRatio
+                                max: window.innerHeight * window.devicePixelRatio
                             },
-                            aspectRatio: window.outerHeight / window.outerWidth
+                            aspectRatio: window.innerHeight / window.innerWidth
                         }
                     });
                     break;
