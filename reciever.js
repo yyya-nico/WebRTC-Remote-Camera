@@ -49,6 +49,18 @@ const listenTrackEvent = () => {
 };
 listenTrackEvent();
 
+let sendDelay = null;
+window.addEventListener('resize', () => {
+    if (!sendDelay) {
+        helper.returnConstraints();
+    }
+    clearTimeout(sendDelay);
+    sendDelay = setTimeout(() => {
+        helper.returnConstraints();
+        sendDelay = null;
+    }, 100);
+});
+
 fullscreenSwitcher(fsBtn);
 
 helper.disconnectHandler = () => {

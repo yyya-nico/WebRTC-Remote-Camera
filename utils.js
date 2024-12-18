@@ -61,18 +61,7 @@ class RTCPeerConnectionHelper {
                     break;
                 case 'requestConstraints':
                     this.pairSid = msg.sID;
-                    this.#sendWrap({
-                        type: 'returnConstraints',
-                        constraints: {
-                            width: {
-                                max: window.innerWidth * window.devicePixelRatio
-                            },
-                            height: {
-                                max: window.innerHeight * window.devicePixelRatio
-                            },
-                            aspectRatio: window.innerHeight / window.innerWidth
-                        }
-                    });
+                    this.returnConstraints();
                     break;
                 case 'returnConstraints':
                     this.track.applyConstraints(msg.constraints);
@@ -152,6 +141,21 @@ class RTCPeerConnectionHelper {
         } else {
             this.ws.addEventListener('open', send, {once: true});
         }
+    }
+
+    returnConstraints() {
+        this.#sendWrap({
+            type: 'returnConstraints',
+            constraints: {
+                width: {
+                    max: window.innerWidth * window.devicePixelRatio
+                },
+                height: {
+                    max: window.innerHeight * window.devicePixelRatio
+                },
+                aspectRatio: window.innerWidth / window.innerHeight
+            }
+        });
     }
 
     async start(track, pairSid) {
