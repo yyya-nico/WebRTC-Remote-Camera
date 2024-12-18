@@ -64,7 +64,15 @@ class RTCPeerConnectionHelper {
                     this.returnConstraints();
                     break;
                 case 'returnConstraints':
-                    this.track.applyConstraints(msg.constraints);
+                    const constraints = msg.constraints;
+                    const { type, angle } = screen.orientation;
+                    const isPortraitDefault =
+                        type.startsWith('portrait') && angle % 180 === 0
+                        || type.startsWith('landscape') && angle % 180 !== 0;
+                    if (isPortraitDefault) {
+                        constraints.aspectRatio = 1 / constraints.aspectRatio; // 90度回転(縦横入れ替え)
+                    }
+                    this.track.applyConstraints(constraints);
                     break;
                 default:
                     console.log(msg);
@@ -144,12 +152,6 @@ class RTCPeerConnectionHelper {
     }
 
     returnConstraints() {
-        const { type, angle } = screen.orientation;
-        const isPortraitDefault =
-            type.startsWith('portrait') && angle % 180 === 0
-            || type.startsWith('landscape') && angle % 180 !== 0;
-        const nativeAspectRatio = window.innerWidth / window.innerHeight;
-        const rotatedAspectRatio = 1 / nativeAspectRatio;
         this.#sendWrap({
             type: 'returnConstraints',
             constraints: {
@@ -159,7 +161,7 @@ class RTCPeerConnectionHelper {
                 height: {
                     max: window.innerHeight * window.devicePixelRatio
                 },
-                aspectRatio: isPortraitDefault ? rotatedAspectRatio : nativeAspectRatio
+                aspectRatio: window.innerWidth / window.innerHeight
             }
         });
     }
