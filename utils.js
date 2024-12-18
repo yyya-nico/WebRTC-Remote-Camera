@@ -64,7 +64,6 @@ class RTCPeerConnectionHelper {
                     this.returnConstraints();
                     break;
                 case 'returnConstraints':
-                    console.log(msg.constraints);
                     this.track.applyConstraints(msg.constraints);
                     break;
                 default:
@@ -165,7 +164,6 @@ class RTCPeerConnectionHelper {
         if (track) {
             this.pc.addTrack(track);
             this.track = track;
-            console.log(this.track.getSettings());
             this.#sendWrap({
                 type: 'requestConstraints'
             });
