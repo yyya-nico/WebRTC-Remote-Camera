@@ -144,6 +144,12 @@ class RTCPeerConnectionHelper {
     }
 
     returnConstraints() {
+        const { type, angle } = screen.orientation;
+        const isPortraitDefault =
+            type.startsWith('portrait') && angle % 180 === 0
+            || type.startsWith('landscape') && angle % 180 !== 0;
+        const nativeAspectRatio = window.innerWidth / window.innerHeight;
+        const rotatedAspectRatio = 1 / nativeAspectRatio;
         this.#sendWrap({
             type: 'returnConstraints',
             constraints: {
@@ -153,7 +159,7 @@ class RTCPeerConnectionHelper {
                 height: {
                     max: window.innerHeight * window.devicePixelRatio
                 },
-                aspectRatio: window.innerWidth / window.innerHeight
+                aspectRatio: isPortraitDefault ? rotatedAspectRatio : nativeAspectRatio
             }
         });
     }
