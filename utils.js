@@ -6,6 +6,14 @@ const getTimestamp = () => {
     return lastFiveDigits.toString().padStart(5, '0'); // 0で埋める
 };
 
+const events = [];
+
+const printEvents = () => {
+    console.table(events);
+};
+
+globalThis.printEvents = printEvents;
+
 class RTCPeerConnectionHelper {
     #loggingHandler = str => {};
 
@@ -27,7 +35,12 @@ class RTCPeerConnectionHelper {
         });
         this.ws.addEventListener('message', e => {
             const msg = JSON.parse(e.data);
-            console.log(msg.type);
+            events.push({
+                'timestamp': getTimestamp(),
+                'from': msg.sID,
+                'to': 'me',
+                'type': msg.type
+            });
             switch (msg.type) {
                 case 'offer':
                     this.pc.setRemoteDescription(msg);
@@ -121,28 +134,23 @@ class RTCPeerConnectionHelper {
         if (!this.joinHub && !msg.auth && !msg.joinHub) {
             await this.promise;
         }
-        if (this.ws.readyState) { // Connection Opened
+        events.push({
+            'timestamp': getTimestamp(),
+            'from': 'me',
+            'to': this.pairSid,
+            'type': msg.type
+        });
+        const send = () => {
+            const to = this.pairSid ? { toS: this.pairSid } : this.joinHub ? { toH: this.hubName } : {};
             this.ws.send(JSON.stringify({
-                ...(this.joinHub && {
-                    toH: this.hubName
-                }),
-                ...(this.pairSid && {
-                    toS: this.pairSid
-                }),
+                ...to,
                 ...msg
             }));
+        };
+        if (this.ws.readyState) { // Connection Opened
+            send();
         } else {
-            this.ws.addEventListener('open', () => {
-                this.ws.send(JSON.stringify({
-                    ...(this.joinHub && {
-                        toH: this.hubName
-                    }),
-                    ...(this.pairSid && {
-                        toS: this.pairSid
-                    }),
-                    ...msg
-                }));
-            }, {once: true});
+            this.ws.addEventListener('open', send, {once: true});
         }
     }
 
