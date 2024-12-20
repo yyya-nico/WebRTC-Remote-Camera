@@ -14,6 +14,12 @@ const printEvents = () => {
 
 globalThis.printEvents = printEvents;
 
+const generateSecret = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const length = 16;
+    return Array.from(crypto.getRandomValues(new Uint32Array(length))).map((n) => chars[n % chars.length]).join('');
+};
+
 class RTCPeerConnectionHelper {
     #loggingHandler = str => {};
 
@@ -25,8 +31,10 @@ class RTCPeerConnectionHelper {
         this.ws = new WebSocket(wsUrl);
         this.track = null;
         this.sid = null;
+        this.secret = null;
         this.sidHandler = () => {};
         this.pairSid = null;
+        this.pairSecret = null;
         this.disconnectHandler = () => {};
         this.joinHub = false;
         this.promise = new Promise((resolve, reject) => {
@@ -35,6 +43,27 @@ class RTCPeerConnectionHelper {
         });
         this.ws.addEventListener('message', e => {
             const msg = JSON.parse(e.data);
+            const isSecretInvalid = msg.secret !== this.secret && msg.secret !== this.pairSecret;
+            if (isSecretInvalid) {
+                console.log(msg);
+                if (msg.auth && msg.auth === 'OK') {
+                    this.sid = msg.SID;
+                    this.secret = generateSecret();
+                    this.sidHandler(this.sid, this.secret);
+                } else if (msg.joinHub) {
+                    this.joinHub = msg.joinHub === 'OK';
+                    this.joinHub ? this.resolve() : this.reject();
+                } else if (msg.leftHub && this.pairSid === msg.sID) {
+                    this.pc.close();
+                    this.pairSid = null;
+                    this.pairSecret = null;
+                    this.pc = new RTCPeerConnection();
+                    this.disconnectHandler();
+                    this.#loggingHandler('切断しました');
+                    this.listenIceconnectionstatechange();
+                }
+                return;
+            }
             events.push({
                 'timestamp': getTimestamp(),
                 'from': msg.sID,
@@ -77,23 +106,6 @@ class RTCPeerConnectionHelper {
                     }
                     this.track.applyConstraints(constraints);
                     break;
-                default:
-                    console.log(msg);
-                    if (msg.auth && msg.auth === 'OK') {
-                        this.sid = msg.SID;
-                        this.sidHandler(this.sid);
-                    } else if (msg.joinHub) {
-                        this.joinHub = msg.joinHub === 'OK';
-                        this.joinHub ? this.resolve() : this.reject();
-                    } else if (msg.leftHub && this.pairSid === msg.sID) {
-                        this.pc.close();
-                        this.pairSid = null;
-                        this.pc = new RTCPeerConnection();
-                        this.disconnectHandler();
-                        this.#loggingHandler('切断しました');
-                        this.listenIceconnectionstatechange();
-                    }
-                    break;
             }
         });
         this.#sendWrap({
@@ -122,8 +134,10 @@ class RTCPeerConnectionHelper {
         });
         const send = () => {
             const to = this.pairSid ? { toS: this.pairSid } : this.joinHub ? { toH: this.hubName } : {};
+            const secret = this.pairSecret ? this.pairSecret : this.secret;
             this.ws.send(JSON.stringify({
                 ...to,
+                secret,
                 ...msg
             }));
         };
@@ -174,9 +188,10 @@ class RTCPeerConnectionHelper {
         });
     }
 
-    async start(track, pairSid) {
+    async start(track, pairSid, pairSecret) {
         this.#loggingHandler('準備中...');
         this.pairSid = pairSid;
+        this.pairSecret = pairSecret;
         if (track) {
             this.pc.addTrack(track);
             this.track = track;

@@ -41,13 +41,13 @@ const readStart = () => {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const code = jsQR(imageData.data, imageData.width, imageData.height);
         if (code) {
-            output.log(code.data);
-            if (code.data.startsWith('Connect:')) {
+            if (code.data.startsWith('Connect:') && code.data.includes('@')) {
+                const secret = code.data.split(':')[1].split('@')[0];
                 const sid = Number(code.chunks[1].text);
                 if (!Number.isInteger(sid)) {
                     return;
                 }
-                helper.start(videoTrack, sid);
+                helper.start(videoTrack, sid, secret);
                 clearInterval(readInterval);
             }
         }

@@ -21,8 +21,8 @@ resolution.log = text => {
     fade();
 };
 const qrCode = document.getElementById('qr-code');
-helper.sidHandler = sid => {
-    QRCode.toCanvas(qrCode, `Connect:${sid}`, {
+helper.sidHandler = (sid, secret) => {
+    QRCode.toCanvas(qrCode, `Connect:${secret}@${sid}`, {
         margin: 2,
         scale: 8
     }, error => {
