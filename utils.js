@@ -70,7 +70,10 @@ class RTCPeerConnectionHelper {
                         type.startsWith('portrait') && angle % 180 === 0
                         || type.startsWith('landscape') && angle % 180 !== 0;
                     if (isPortraitDefault) {
-                        constraints.aspectRatio = 1 / constraints.aspectRatio; // 90度回転(縦横入れ替え)
+                        const { width, height, aspectRatio } = constraints;
+                        constraints.width = height;
+                        constraints.height = width;
+                        constraints.aspectRatio = 1 / aspectRatio; // 90度回転(縦横入れ替え)
                     }
                     this.track.applyConstraints(constraints);
                     break;
