@@ -158,6 +158,8 @@ class RTCPeerConnectionHelper {
                     this.#loggingHandler('接続済み');
                     break;
                 case 'closed':
+                    this.pc = new RTCPeerConnection();
+                    this.disconnectHandler();
                     this.#loggingHandler('切断しました');
                     break;
                 case 'failed':
