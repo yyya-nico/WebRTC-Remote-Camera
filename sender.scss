@@ -22,3 +22,11 @@
         display: none;
     }
 }
+
+@media (orientation: landscape) {
+    #torch {
+        bottom: 50%;
+        left: calc(75% - var(--side-ref) / 2);
+        transform: translateY(50%);
+    }
+}
