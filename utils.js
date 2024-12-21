@@ -23,8 +23,18 @@ const generateSecret = () => {
 class RTCPeerConnectionHelper {
     #loggingHandler = str => {};
 
-    constructor() {
+    constructor({
+        setupPeerConnectionHandler = () => {},
+        setupDataChannelHandler = () => {},
+        sidHandler = () => {},
+        closedHandler = () => {}
+    } = {}) {
+        this.setupPeerConnectionHandler = setupPeerConnectionHandler;
+        this.setupDataChannelHandler = setupDataChannelHandler;
+        this.sidHandler = sidHandler;
+        this.closedHandler = closedHandler;
         this.pc = new RTCPeerConnection();
+        this.setupPeerConnection();
         const wsUrl = import.meta.env.VITE_WS_URL;
         this.hubName = import.meta.env.VITE_WS_HUB_NAME;
         const uuid = self.crypto.randomUUID();
@@ -32,10 +42,8 @@ class RTCPeerConnectionHelper {
         this.track = null;
         this.sid = null;
         this.secret = null;
-        this.sidHandler = () => {};
         this.pairSid = null;
         this.pairSecret = null;
-        this.disconnectHandler = () => {};
         this.joinHub = false;
         this.promise = new Promise((resolve, reject) => {
             this.resolve = resolve;
@@ -55,12 +63,12 @@ class RTCPeerConnectionHelper {
                     this.joinHub ? this.resolve() : this.reject();
                 } else if (msg.leftHub && this.pairSid === msg.sID) {
                     this.pc.close();
+                    this.closedHandler();
                     this.pairSid = null;
                     this.pairSecret = null;
-                    this.pc = new RTCPeerConnection();
-                    this.disconnectHandler();
                     this.#loggingHandler('切断しました');
-                    this.listenIceconnectionstatechange();
+                    this.pc = new RTCPeerConnection();
+                    this.setupPeerConnection();
                 }
                 return;
             }
@@ -68,15 +76,17 @@ class RTCPeerConnectionHelper {
                 'timestamp': getTimestamp(),
                 'from': msg.sID,
                 'to': 'me',
-                'type': msg.type
+                'type': msg.type,
+                'protocol': 'WebSocket'
             });
             switch (msg.type) {
                 case 'offer':
+                    this.pairSid = msg.sID;
                     this.pc.setRemoteDescription(msg);
                     this.pc.createAnswer()
                         .then(desc => {
                             this.pc.setLocalDescription(desc);
-                            this.#sendWrap({
+                            this.#wsSendWrap({
                                 ...desc
                             });
                         });
@@ -88,8 +98,73 @@ class RTCPeerConnectionHelper {
                 case 'candidate':
                     this.pc.addIceCandidate(msg.ice);
                     break;
+            }
+        });
+        this.#wsSendWrap({
+            auth: uuid,
+            passwd:'none'
+        });
+        this.#wsSendWrap({
+            joinHub: this.hubName
+        });
+    }
+
+    set onEvent(handler) {
+        this.#loggingHandler = handler;
+    }
+
+    setupPeerConnection() {
+        this.pc.addEventListener('iceconnectionstatechange', () => {
+            switch (this.pc.iceConnectionState) {
+                case 'checking':
+                    this.#loggingHandler('確認中...');
+                    break;
+                case 'connected':
+                    this.#loggingHandler('接続済み');
+                    break;
+                case 'closed':
+                    this.closedHandler();
+                    this.pairSid = null;
+                    this.pairSecret = null;
+                    this.#loggingHandler('切断しました');
+                    this.pc = new RTCPeerConnection();
+                    this.setupPeerConnection();
+                    break;
+                case 'failed':
+                    this.#loggingHandler('切断されました');
+                    break;
+                case 'disconnected':
+                    this.#loggingHandler('一時的に切断しています');
+                    break;
+                default:
+                    this.#loggingHandler(this.pc.iceConnectionState);
+                    break;
+            }
+        });
+        this.pc.addEventListener('datachannel', e => {
+            this.dc = e.channel;
+            this.setupDataChannel();
+        });
+        this.setupPeerConnectionHandler(this.pc);
+    }
+
+    createDataChannel() {
+        this.dc = this.pc.createDataChannel('data');
+        this.setupDataChannel();
+    }
+
+    setupDataChannel() {
+        this.dc.addEventListener('message', e => {
+            const msg = JSON.parse(e.data);
+            events.push({
+                'timestamp': getTimestamp(),
+                'from': '',
+                'to': 'me',
+                'type': msg.type,
+                'protocol': 'DataChannel'
+            });
+            switch (msg.type) {
                 case 'requestConstraints':
-                    this.pairSid = msg.sID;
                     this.returnConstraints();
                     break;
                 case 'returnConstraints':
@@ -108,21 +183,10 @@ class RTCPeerConnectionHelper {
                     break;
             }
         });
-        this.#sendWrap({
-            auth: uuid,
-            passwd:'none'
-        });
-        this.#sendWrap({
-            joinHub: this.hubName
-        });
-        this.listenIceconnectionstatechange();
+        this.setupDataChannelHandler(this.dc);
     }
 
-    set onEvent(handler) {
-        this.#loggingHandler = handler;
-    }
-
-    async #sendWrap(msg) {
+    async #wsSendWrap(msg) {
         if (!this.joinHub && !msg.auth && !msg.joinHub) {
             await this.promise;
         }
@@ -130,7 +194,8 @@ class RTCPeerConnectionHelper {
             'timestamp': getTimestamp(),
             'from': 'me',
             'to': this.pairSid,
-            'type': msg.type
+            'type': msg.type,
+            'protocol': 'WebSocket'
         });
         const send = () => {
             const to = this.pairSid ? { toS: this.pairSid } : this.joinHub ? { toH: this.hubName } : {};
@@ -148,35 +213,26 @@ class RTCPeerConnectionHelper {
         }
     }
 
-    listenIceconnectionstatechange() {
-        this.pc.addEventListener('iceconnectionstatechange', () => {
-            switch (this.pc.iceConnectionState) {
-                case 'checking':
-                    this.#loggingHandler('確認中...');
-                    break;
-                case 'connected':
-                    this.#loggingHandler('接続済み');
-                    break;
-                case 'closed':
-                    this.pc = new RTCPeerConnection();
-                    this.disconnectHandler();
-                    this.#loggingHandler('切断しました');
-                    break;
-                case 'failed':
-                    this.#loggingHandler('切断されました');
-                    break;
-                case 'disconnected':
-                    this.#loggingHandler('一時的に切断しています');
-                    break;
-                default:
-                    this.#loggingHandler(this.pc.iceConnectionState);
-                    break;
-            }
+    async #dcSendWrap(msg) {
+        if (this.dc.readyState === 'connecting') {
+            await new Promise(resolve => {
+                this.dc.addEventListener('open', resolve, {once: true});
+            });
+        }
+        events.push({
+            'timestamp': getTimestamp(),
+            'from': 'me',
+            'to': '',
+            'type': msg.type,
+            'protocol': 'DataChannel'
         });
+        this.dc.send(JSON.stringify({
+            ...msg
+        }));
     }
 
     returnConstraints() {
-        this.#sendWrap({
+        this.#dcSendWrap({
             type: 'returnConstraints',
             constraints: {
                 width: {
@@ -194,17 +250,18 @@ class RTCPeerConnectionHelper {
         this.#loggingHandler('準備中...');
         this.pairSid = pairSid;
         this.pairSecret = pairSecret;
+        this.#loggingHandler('接続中...');
+        this.createDataChannel();
         if (track) {
             this.pc.addTrack(track);
             this.track = track;
-            this.#sendWrap({
+            this.#dcSendWrap({
                 type: 'requestConstraints'
             });
         }
-        this.#loggingHandler('接続中...');
         this.pc.addEventListener('icecandidate', e => {
             if (e.candidate) {
-                this.#sendWrap({
+                this.#wsSendWrap({
                     type: 'candidate',
                     ice: e.candidate
                 });
@@ -213,7 +270,7 @@ class RTCPeerConnectionHelper {
         this.pc.createOffer()
             .then(desc => {
                 this.pc.setLocalDescription(desc);
-                this.#sendWrap({
+                this.#wsSendWrap({
                     ...desc
                 });
             });

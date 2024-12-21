@@ -4,7 +4,33 @@ import './reciever.scss'
 import QRCode from 'qrcode';
 import {RTCPeerConnectionHelper, fullscreenSwitcher, uiDispManage} from './utils';
 
-const helper = new RTCPeerConnectionHelper();
+const helper = new RTCPeerConnectionHelper({
+    setupPeerConnectionHandler: pc => {
+        pc.addEventListener('track', e => {
+            const videoTrack = e.track;
+            const stream = new MediaStream();
+            video.srcObject = e.streams && e.streams[0] || stream;
+            stream.addTrack(videoTrack);
+            connectQrImage.hidden = true;
+            view.hidden = false;
+        });
+    },
+    sidHandler: (sid, secret) => {
+        QRCode.toCanvas(qrCode, `Connect:${secret}@${sid}`, {
+            margin: 2,
+            scale: 8
+        }, error => {
+            if (error) {
+                alert('QRコードを作成できませんでした。お使いの環境では利用できません。');    
+            }
+        });
+    },
+    closedHandler: () => {
+        connectQrImage.hidden = false;
+        view.hidden = true;
+        video.srcObject = null;
+    }
+});
 const connectQrImage = document.querySelector('.connect-qr-image');
 const view = document.querySelector('.view');
 const video = document.getElementById('video');
@@ -21,33 +47,11 @@ resolution.log = text => {
     fade();
 };
 const qrCode = document.getElementById('qr-code');
-helper.sidHandler = (sid, secret) => {
-    QRCode.toCanvas(qrCode, `Connect:${secret}@${sid}`, {
-        margin: 2,
-        scale: 8
-    }, error => {
-        if (error) {
-            alert('QRコードを作成できませんでした。お使いの環境では利用できません。');    
-        }
-    });
-};
 const fsBtn = document.getElementById('fullscreen');
 
 video.addEventListener('resize', () => {
     resolution.log(`${video.videoWidth} x ${video.videoHeight}`);
 });
-
-const listenTrackEvent = () => {
-    helper.pc.addEventListener('track', e => {
-        const videoTrack = e.track;
-        const stream = new MediaStream();
-        video.srcObject = e.streams && e.streams[0] || stream;
-        stream.addTrack(videoTrack);
-        connectQrImage.hidden = true;
-        view.hidden = false;
-    });
-};
-listenTrackEvent();
 
 let sendDelay = null;
 window.addEventListener('resize', () => {
@@ -62,10 +66,3 @@ window.addEventListener('resize', () => {
 });
 
 fullscreenSwitcher(fsBtn);
-
-helper.disconnectHandler = () => {
-    connectQrImage.hidden = false;
-    view.hidden = true;
-    video.srcObject = null;
-    listenTrackEvent();
-}

@@ -4,7 +4,15 @@ import './sender.scss'
 import jsQR from 'jsqr';
 import {RTCPeerConnectionHelper} from './utils';
 
-const helper = new RTCPeerConnectionHelper();
+const helper = new RTCPeerConnectionHelper({
+    disconnectHandler: () => {
+        clearInterval(readInterval);
+        readInterval = readStart();
+        setTimeout(() => {
+            output.log('受信画面に表示されているQRコードを読み取ってください。');
+        }, 2000);
+    }
+});
 const video = document.getElementById('video');
 const output = document.getElementById('output');
 output.log = text => {
@@ -73,11 +81,3 @@ torchBtn.addEventListener('click', () => {
         torchBtn.textContent = torchBtnIconDefs[Number(torch)];
     });
 });
-
-helper.disconnectHandler = () => {
-    clearInterval(readInterval);
-    readInterval = readStart();
-    setTimeout(() => {
-        output.log('受信画面に表示されているQRコードを読み取ってください。');
-    }, 2000);
-};
