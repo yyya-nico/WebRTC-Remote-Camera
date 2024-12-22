@@ -86,14 +86,11 @@ class RTCPeerConnectionHelper {
                     this.pc.createAnswer()
                         .then(desc => {
                             this.pc.setLocalDescription(desc);
-                            this.#wsSendWrap({
-                                ...desc
-                            });
+                            this.#wsSendWrap(desc);
                         });
                     break;
                 case 'answer':
                     this.pc.setRemoteDescription(msg);
-                    this.#loggingHandler('接続済み');
                     break;
                 case 'candidate':
                     this.pc.addIceCandidate(msg.ice);
@@ -248,17 +245,15 @@ class RTCPeerConnectionHelper {
 
     async start(track, pairSid, pairSecret) {
         this.#loggingHandler('準備中...');
+        this.track = track;
         this.pairSid = pairSid;
         this.pairSecret = pairSecret;
         this.#loggingHandler('接続中...');
         this.createDataChannel();
-        if (track) {
-            this.pc.addTrack(track);
-            this.track = track;
-            this.#dcSendWrap({
-                type: 'requestConstraints'
-            });
-        }
+        this.pc.addTrack(track);
+        this.#dcSendWrap({
+            type: 'requestConstraints'
+        });
         this.pc.addEventListener('icecandidate', e => {
             if (e.candidate) {
                 this.#wsSendWrap({
@@ -270,9 +265,7 @@ class RTCPeerConnectionHelper {
         this.pc.createOffer()
             .then(desc => {
                 this.pc.setLocalDescription(desc);
-                this.#wsSendWrap({
-                    ...desc
-                });
+                this.#wsSendWrap(desc);
             });
     }
 }
