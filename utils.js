@@ -282,6 +282,9 @@ class RTCPeerConnectionHelper {
 }
 
 const fullscreenSwitcher = button => {
+    if (window.matchMedia('(display-mode: fullscreen)').matches) {
+        button.hidden = true;
+    }
     const target = document.documentElement;
     button.addEventListener('click', () => {
 		if (!document.fullscreenElement) {

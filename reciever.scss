@@ -79,9 +79,7 @@ body {
         background-color: transparent;
     }
 
-    @media (display-mode: fullscreen) {
-        & {
-            display: none;
-        }
+    &[hidden] {
+        display: none;
     }
 }
