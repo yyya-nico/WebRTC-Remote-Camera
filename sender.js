@@ -5,7 +5,7 @@ import jsQR from 'jsqr';
 import {RTCPeerConnectionHelper} from './utils';
 
 const helper = new RTCPeerConnectionHelper({
-    disconnectHandler: () => {
+    closedHandler: () => {
         clearInterval(readInterval);
         readInterval = readStart();
         setTimeout(() => {
