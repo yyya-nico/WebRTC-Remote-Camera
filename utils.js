@@ -176,7 +176,10 @@ class RTCPeerConnectionHelper {
                         constraints.height = width;
                         constraints.aspectRatio = 1 / aspectRatio; // 90度回転(縦横入れ替え)
                     }
-                    this.track.applyConstraints(constraints);
+                    this.track.applyConstraints(constraints)
+                        .then(() => {
+                            this.pc.addTrack(this.track);
+                        });
                     break;
             }
         });
@@ -250,7 +253,6 @@ class RTCPeerConnectionHelper {
         this.pairSecret = pairSecret;
         this.#loggingHandler('接続中...');
         this.createDataChannel();
-        this.pc.addTrack(track);
         this.#dcSendWrap({
             type: 'requestConstraints'
         });
