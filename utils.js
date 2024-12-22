@@ -145,6 +145,19 @@ class RTCPeerConnectionHelper {
         this.setupPeerConnectionHandler(this.pc);
     }
 
+    addTrack(track) {
+        this.pc.addTrack(track);
+        this.negotiate();
+    }
+
+    negotiate() {
+        this.pc.createOffer()
+            .then(desc => {
+                this.pc.setLocalDescription(desc);
+                this.#wsSendWrap(desc);
+            });
+    }
+
     createDataChannel() {
         this.dc = this.pc.createDataChannel('data');
         this.setupDataChannel();
@@ -178,7 +191,7 @@ class RTCPeerConnectionHelper {
                     }
                     this.track.applyConstraints(constraints)
                         .then(() => {
-                            this.pc.addTrack(this.track);
+                            this.addTrack(this.track);
                         });
                     break;
             }
@@ -264,11 +277,7 @@ class RTCPeerConnectionHelper {
                 });
             }
         });
-        this.pc.createOffer()
-            .then(desc => {
-                this.pc.setLocalDescription(desc);
-                this.#wsSendWrap(desc);
-            });
+        this.negotiate();
     }
 }
 
